@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:secomp2019/src/repositories.dart';
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -9,14 +11,23 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  String _search = "marcelo";
+  String _search = "rodolfosaraiva";
   Future<Map> _getUsers() async {
     http.Response response;
     
-    response = await http.get("https://api.github.com/search/users?q=${_search}&per_page=10");
+    response = await http.get("https://api.github.com/search/users?q=$_search&per_page=10");
 
     return json.decode(response.body);
   }
+
+  Future<List> _getRepositories(user) async {
+    http.Response response;
+
+    response = await http.get("https://api.github.com/users/$user/repos");
+
+    return json.decode(response.body);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +41,11 @@ class _HomeState extends State<Home> {
           Padding(
             padding: EdgeInsets.all(10),
             child: TextField(
+              onSubmitted: (text) {
+                setState(() {
+                  _search = text;
+                });
+              },
               decoration: InputDecoration(
                 suffixIcon: Icon(Icons.search),
                 labelText: "Pesquisar..",
@@ -41,6 +57,8 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
+
+          (_search != '') ?
           Expanded(
             child: FutureBuilder<Map>(
               future: _getUsers(),
@@ -66,7 +84,8 @@ class _HomeState extends State<Home> {
                 }
               },
             )
-          )
+          ) : Container()
+
         ],
       ),
     );
@@ -84,6 +103,12 @@ class _HomeState extends State<Home> {
       padding: EdgeInsets.all(4.0),
       itemBuilder: (context, index) {
         return InkWell(
+          onTap: (){
+            var user = snapshot.data["items"][index]["login"];
+            _getRepositories(user).then((res){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => Repositories(user, res)));
+            });
+          },
           child: Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
