@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class Repositories extends StatelessWidget {
   final String user;
@@ -30,7 +32,9 @@ class Repositories extends StatelessWidget {
 
   Widget _repositoriesCard(BuildContext context, int index, List repo) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        _launchURL(repo[index]['html_url']);
+      },
       child: Card(
         child: Row(
           children: <Widget>[
@@ -88,5 +92,13 @@ class Repositories extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  _launchURL(url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }
